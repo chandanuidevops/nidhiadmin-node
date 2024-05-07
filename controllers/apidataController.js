@@ -1,4 +1,4 @@
-const { json } = require("body-parser");
+
 const ApiData = require("../models/apidataModels");
 const ApiDataRun = require("../models/lastApiRun");
 const mongoose = require("mongoose");
@@ -6,7 +6,7 @@ const mongoose = require("mongoose");
 async function addApidata(req, res) {
   console.log("called");
   const newApiData = req.body;
-  console.log(newApiData);
+ 
   try {
     const apiData = new ApiData(newApiData);
     const postResult = await apiData.save();
