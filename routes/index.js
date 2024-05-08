@@ -3,7 +3,7 @@ const router = express.Router();
 const apiData = require('../controllers/apidataController')
 
 router.post('/addApidata',apiData.addApidata);
-router.get('/getapidata',apiData.getAllAPIData);
+router.get('/getApidata',apiData.getAllAPIData);
 router.post('/lastApiRunOn',apiData.setLatsApiRunon)
 router.get('/getLastApiRun',apiData.getLastApiRun)
 router.get('/totalNumberofApis',apiData.getTotalAPis)
