@@ -8,7 +8,7 @@ const bodyParser = require("body-parser");
 //     extended: true
 // }));
 // app.use(bodyParser.json());
-app.use(bodyParser.json({ limit: '50mb' }))
+app.use(bodyParser.json({ limit: '100mb' }))
 // const { Connection } = require('./db')
 const routes = require('./routes/index')
 
