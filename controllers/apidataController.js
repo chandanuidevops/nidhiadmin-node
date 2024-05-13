@@ -2,7 +2,7 @@
 const ApiData = require("../models/apidataModels");
 const ApiDataRun = require("../models/lastApiRun");
 const mongoose = require("mongoose");
-
+const ResponseData = require('../models/responsedataModel')
 async function addApidata(req, res) {
   console.log("called");
   const newApiData = req.body;
@@ -175,6 +175,62 @@ async function feedDataToDb(query, dataObj) {
     return false;
   }
 }
+async function saveReponseData(req,res){
+  const newResponseData = req.body;
+  console.log(newResponseData)
+  try {
+      const data = new ResponseData(newResponseData)
+      await data.save();
+      return res.status(200).send({
+          status: 'Ok',
+          msg: "Data Saved"
+      })
+  } catch (err) {
+      return res.status(500).send({
+          status: 'Internal Server Error',
+          msg: "error while posting APIData"
+      })
+  }
+}
+async function getResponseData(req,res){
+  const data = await ResponseData.find();
+ try{
+      if(data){
+          res.status(200).send({
+              status:'ok',
+              data:data
+          })
+      }else{
+          res.status(422).send({
+              status:"Unprocessable Entity",
+              msg:"No data found"
+          })
+      }
+ }catch(error){
+  console.log(error)
+  res.status(500).send({
+      status:'Internal Server Error',
+      msg:"error while getting API Data"
+  })
+ }
+}
+async function addExcelApidata(req, res) {
+  const newApiData = req.body;
+  console.log(newApiData)
+  try {
+      ApiData.insertMany(newApiData).then((data)=>{
+          return res.status(200).send({
+              status: 'Ok',
+              msg: "Data Saved"
+          })
+      })
+  } catch (err) {
+      return res.status(500).send({
+          status: 'Internal Server Error',
+          msg: "error while posting APIData"
+      })
+  }
+}
 module.exports = {
   addApidata,
   getAllAPIData,
@@ -182,4 +238,7 @@ module.exports = {
   getLastApiRun,
   getTotalAPis,
   editTestCases,
+  saveReponseData,
+  getResponseData,
+  addExcelApidata
 };
