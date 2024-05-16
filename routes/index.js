@@ -1,4 +1,5 @@
 const express = require('express');
+
 const router = express.Router();
 const apiData = require('../controllers/apidataController')
 
@@ -11,6 +12,7 @@ router.put('/updateTestCses',apiData.editTestCases)
 router.post('/saveResponseData',apiData.saveReponseData)
 router.get('/getResponseData',apiData.getResponseData)
 router.post('/addExcelApiData',apiData.addExcelApidata)
+router.get('/getRequestHistory',apiData.getRequestHistory)
 
 
 module.exports = router;

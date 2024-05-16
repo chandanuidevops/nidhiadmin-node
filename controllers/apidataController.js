@@ -1,15 +1,14 @@
-
 const ApiData = require("../models/apidataModels");
+const axios = require("axios");
 const ApiDataRun = require("../models/lastApiRun");
 const mongoose = require("mongoose");
-const ResponseData = require('../models/responsedataModel')
+const ResponseData = require("../models/responsedataModel");
 async function addApidata(req, res) {
-  console.log("called");
   const newApiData = req.body;
- 
+
   try {
     const apiData = new ApiData(newApiData);
-    const postResult = await apiData.save();
+    const postResult = await addOrUpdate(apiData);
     return res.status(200).send({
       status: "Ok",
       msg: "Data Saved",
@@ -37,7 +36,6 @@ async function getAllAPIData(req, res) {
       });
     }
   } catch (error) {
-    console.log(error);
     res.status(500).send({
       status: "Internal Server Error",
       msg: "error while getting API Data",
@@ -60,7 +58,6 @@ async function getTotalAPis(req, res) {
       });
     }
   } catch (error) {
-    console.log(error);
     res.status(500).send({
       status: "Internal Server Error",
       msg: "error while getting API Data",
@@ -83,7 +80,6 @@ async function getLastApiRun(req, res) {
       });
     }
   } catch (error) {
-    console.log(error);
     res.status(500).send({
       status: "Internal Server Error",
       msg: "error while getting API Data",
@@ -92,7 +88,7 @@ async function getLastApiRun(req, res) {
 }
 async function setLatsApiRunon(req, res) {
   let date = req.body;
-  console.log(date);
+
   try {
     const apiData = new ApiDataRun(date);
     const postResult = await apiData.save();
@@ -109,10 +105,9 @@ async function setLatsApiRunon(req, res) {
 
 async function editTestCases(req, res) {
   let putData = req.body;
-  console.log(putData);
+
   let data = JSON.parse(putData.data);
-  console.log(data);
-  console.log(typeof data);
+
   const query = { _id: putData.id };
 
   try {
@@ -123,18 +118,6 @@ async function editTestCases(req, res) {
       dataObj[varaibleName] = variablValue;
     });
 
-    console.log(dataObj, "dataObj");
-    // const functionResponse = await feedDataToDb(query,dataObj)
-
-    // await dataObj.forEach(async(element)=>{
-    //     console.log(element)
-    //     await ApiData.updateOne(query,element,function(err, res) {
-    //         if (err) throw err;
-    //         console.log("1 document updated");
-    //         console.log(res)
-    //       });
-    // })
-
     for (data in dataObj) {
       let key = data;
       var newvalues = { $set: { [key]: dataObj[data] } };
@@ -144,15 +127,7 @@ async function editTestCases(req, res) {
       status: "Ok",
       msg: "API Test Cases Updated",
     });
-    // for (let index = 0; index < data.length; index++) {
-    //     //d["ExpectedResults{0}".format(x)] = data[index]
-    //     let key = "ExpectedResults"+index
-    //     var newvalues = { $set: ${key} : data[index] };
-    //     console.log(newvalues)
-    //     await ApiData.updateOne(query,newvalues);
-    // }
   } catch (err) {
-    console.log(err);
     return res.status(500).send({
       status: "Internal Server Error",
       msg: "error while posting APIData",
@@ -160,76 +135,158 @@ async function editTestCases(req, res) {
   }
 }
 
-async function feedDataToDb(query, dataObj) {
+async function saveReponseData(req, res) {
+  const newResponseData = req.body;
+
   try {
-    dataObj.forEach(async (element) => {
-      console.log(element);
-      let res = await ApiData.updateOne(query, element, function (err, res) {
-        if (err) throw err;
-        console.log("1 document updated");
-      });
-      console.log(res);
+    const data = new ResponseData(newResponseData);
+    await data.save();
+    return res.status(200).send({
+      status: "Ok",
+      msg: "Data Saved",
     });
   } catch (err) {
-    console.log(err);
-    return false;
+    return res.status(500).send({
+      status: "Internal Server Error",
+      msg: "error while posting APIData",
+    });
   }
 }
-async function saveReponseData(req,res){
-  const newResponseData = req.body;
-  console.log(newResponseData)
-  try {
-      const data = new ResponseData(newResponseData)
-      await data.save();
-      return res.status(200).send({
-          status: 'Ok',
-          msg: "Data Saved"
-      })
-  } catch (err) {
-      return res.status(500).send({
-          status: 'Internal Server Error',
-          msg: "error while posting APIData"
-      })
-  }
-}
-async function getResponseData(req,res){
+async function getResponseData(req, res) {
   const data = await ResponseData.find();
- try{
-      if(data){
-          res.status(200).send({
-              status:'ok',
-              data:data
-          })
-      }else{
-          res.status(422).send({
-              status:"Unprocessable Entity",
-              msg:"No data found"
-          })
-      }
- }catch(error){
-  console.log(error)
-  res.status(500).send({
-      status:'Internal Server Error',
-      msg:"error while getting API Data"
-  })
- }
+  try {
+    if (data) {
+      res.status(200).send({
+        status: "ok",
+        data: data,
+      });
+    } else {
+      res.status(422).send({
+        status: "Unprocessable Entity",
+        msg: "No data found",
+      });
+    }
+  } catch (error) {
+    res.status(500).send({
+      status: "Internal Server Error",
+      msg: "error while getting API Data",
+    });
+  }
 }
 async function addExcelApidata(req, res) {
   const newApiData = req.body;
-  console.log(newApiData)
+
   try {
-      ApiData.insertMany(newApiData).then((data)=>{
-          return res.status(200).send({
-              status: 'Ok',
-              msg: "Data Saved"
-          })
-      })
+    for (let i = 0; i < newApiData.length; i++) {
+      await addOrUpdate(newApiData[i]);
+    }
+    return res.status(200).send({
+      status: "Ok",
+      msg: "Data Saved",
+    });
   } catch (err) {
-      return res.status(500).send({
-          status: 'Internal Server Error',
-          msg: "error while posting APIData"
-      })
+    return res.status(500).send({
+      status: "Internal Server Error",
+      msg: "error while posting APIData",
+    });
   }
+}
+const addOrUpdate = async (req) => {
+  const data = await ApiData.findOne({ SubURL: req.SubURL });
+
+  if (data) {
+    await ApiData.findByIdAndUpdate(data._id, req, {
+      new: true,
+    });
+  } else {
+    await ApiData.create(req);
+  }
+};
+async function getRequestHistory(req, res) {
+  const data = await ApiData.find({ module: req.query.module });
+
+  let result = [];
+  let error = [];
+
+  const headers = {
+    Authorization: `Bearer ${req.query.token}`,
+  };
+
+  for (let i = 0; i < data.length; i++) {
+    const header = JSON.parse(data[i].headers);
+    if (header.deviceId) {
+      headers.deviceId = header.deviceId;
+    }
+    if (header.ipAddress) {
+      headers.ipAddress = header.ipAddress;
+    }
+    const request = {
+      BaseURL: data[i].BaseURL,
+      SubURL: data[i].SubURL,
+      apitype: data[i].apitype,
+      jsonbody: data[i].jsonbody,
+    };
+    if (data[i].apitype.toLowerCase() === "get") {
+      await axios
+        .get(`${data[i].BaseURL}${data[i].SubURL}`, { headers })
+        .then((response) => {
+          result.push({ request: request, response: response.data });
+        })
+        .catch((err) => {
+          error.push({ request: request, error: err });
+        });
+    }
+    if (data[i].apitype.toLowerCase() === "post") {
+      await axios
+        .post(
+          `${data[i].BaseURL}${data[i].SubURL}`,
+          data[i].jsonbody ? JSON.parse(data[i].jsonbody) : {},
+          { headers }
+        )
+        .then((response) => {
+          result.push({ request: request, response: response.data });
+        })
+        .catch((err) => {
+          error.push({ request: request, error: err });
+        });
+    }
+    if (data[i].apitype.toLowerCase() === "put") {
+      await axios
+        .put(
+          `${data[i].BaseURL}${data[i].SubURL}`,
+          data[i].jsonbody ? JSON.parse(data[i].jsonbody) : {},
+          { headers }
+        )
+        .then((response) => {
+          result.push({ request: request, response: response.data });
+        })
+        .catch((err) => {
+          error.push({ request: request, error: err });
+        });
+    }
+    if (data[i].apitype.toLowerCase() === "delete") {
+      await axios
+        .delete(
+          `${data[i].BaseURL}${data[i].SubURL}`,
+
+          {
+            data: data[i].jsonbody ? JSON.parse(data[i].jsonbody) : {},
+            headers,
+          }
+        )
+        .then((response) => {
+          result.push({ request: request, response: response.data });
+        })
+        .catch((err) => {
+          error.push({ request: request, error: err });
+        });
+    }
+  }
+
+  res.status(200).json({
+    status: "ok",
+    data: { success: result, error: error },
+  });
 }
 module.exports = {
   addApidata,
@@ -240,5 +297,6 @@ module.exports = {
   editTestCases,
   saveReponseData,
   getResponseData,
-  addExcelApidata
+  addExcelApidata,
+  getRequestHistory,
 };

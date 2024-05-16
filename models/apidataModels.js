@@ -28,8 +28,20 @@ const apidataSchema = new Schema(
       type: String,
       required: true,
     },
+    module: {
+      type: String,
+      required: true,
+    },
+    headers: {
+      type: String,
+      required: true,
+    },
   },
-  { strict: false }
+  
+  {
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  }
 );
 
 module.exports = mongoose.model("ApiData", apidataSchema);
